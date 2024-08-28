@@ -1,0 +1,32 @@
+AUTOMATED TESTING RESULTS
+
+Results for item volume: 5
+DNN - Average Accuracy: 0.9952, Average Training Time: 1429.66 seconds, Average Loss: 0.0082, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.9374, Average Training Time: 2612.54 seconds, Average Loss: 0.0622, Peak Memory Usage: 0.04 MB
+DQN - Average Accuracy: 0.7628, Average Training Time: 57.77 seconds, Average Loss: 1.9713, Peak Memory Usage: 
+0.54 MB
+
+Results for item volume: 10
+DNN - Average Accuracy: 0.9929, Average Training Time: 1408.13 seconds, Average Loss: 0.0105, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.8816, Average Training Time: 2616.04 seconds, Average Loss: 0.1347, Peak Memory Usage: 0.04 MB
+DQN - Average Accuracy: 0.8091, Average Training Time: 117.64 seconds, Average Loss: 1.7281, Peak Memory Usage: 0.96 MB
+
+Results for item volume: 20
+DNN - Average Accuracy: 0.9973, Average Training Time: 1275.71 seconds, Average Loss: 0.0062, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.7791, Average Training Time: 2365.54 seconds, Average Loss: 0.1818, Peak Memory Usage: 0.04 MB
+DQN - Average Accuracy: 0.8522, Average Training Time: 235.75 seconds, Average Loss: 1.3942, Peak Memory Usage: 1.42 MB
+
+Results for item volume: 50
+DNN - Average Accuracy: 0.9988, Average Training Time: 1323.11 seconds, Average Loss: 0.0079, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.7730, Average Training Time: 2585.36 seconds, Average Loss: 0.1707, Peak Memory Usage: 0.05 MB
+DQN - Average Accuracy: 0.7820, Average Training Time: 588.14 seconds, Average Loss: 0.7481, Peak Memory Usage: 1.69 MB
+
+Results for item volume: 100
+DNN - Average Accuracy: 0.9813, Average Training Time: 1428.11 seconds, Average Loss: 0.0311, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.8329, Average Training Time: 3101.71 seconds, Average Loss: 0.1385, Peak Memory Usage: 0.06 MB
+DQN - Average Accuracy: 0.8440, Average Training Time: 1283.92 seconds, Average Loss: 0.5182, Peak Memory Usage: 1.79 MB
+
+Results for item volume: 200
+DNN - Average Accuracy: 0.9700, Average Training Time: 1593.72 seconds, Average Loss: 0.0448, Peak Memory Usage: 0.00 MB
+RNN - Average Accuracy: 0.8873, Average Training Time: 6073.65 seconds, Average Loss: 0.1001, Peak Memory Usage: 0.06 MB
+DQN - Average Accuracy: 0.9032, Average Training Time: 2779.70 seconds, Average Loss: 0.3333, Peak Memory Usage: 1.83 MB

@@ -1,0 +1,5 @@
+py -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+py -m pip install numpy
+
+py -m pip install -U matplotlib
