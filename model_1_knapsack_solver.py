@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class NeuralKnapsackSolver(nn.Module):
-    def __init__(self, input_dim, hidden_dim):
+    def __init__(self, input_dim, hidden_dim, dropout_ratio=0.2):
         super(NeuralKnapsackSolver, self).__init__()
 
         # Memory Constructor: GRU-based Network
@@ -20,6 +20,9 @@ class NeuralKnapsackSolver(nn.Module):
 
         # Decoder: GRU-based Network to generate output
         self.decoder = nn.GRU(input_dim + hidden_dim, hidden_dim, num_layers=3, batch_first=True)
+
+        # Dropout layer to avoid overfitting
+        self.dropout = nn.Dropout(dropout_ratio)
 
         # Final output layer to get probabilities (0 or 1 for each item)
         self.output_layer = nn.Linear(hidden_dim, 1)
