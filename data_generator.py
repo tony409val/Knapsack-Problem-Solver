@@ -1,6 +1,6 @@
 import pulp
 import random
-from model_1_utils import save_data
+from utils import save_data
 
 # Generate knapsack instances with increasing difficulty in batches of 100
 def generate_knapsack_instances(instance_type, num_items, instance_index, R=1000, H=100):

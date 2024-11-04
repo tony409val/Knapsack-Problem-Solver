@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 from tkinter import messagebox
 from model_1_trainer import *
-from model_1_utils import *
-from model_1_evaluation import *
+from utils import *
+from evaluation import *
 from test import *
 
 

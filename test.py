@@ -3,7 +3,7 @@ import os
 import random
 import tkinter as tk
 from tkinter import ttk
-from model_1_utils import greedy_algorithm, load_data
+from utils import greedy_algorithm, load_data
 from visual import *
 
 # Function to flip decisions one by one until the solution is feasible

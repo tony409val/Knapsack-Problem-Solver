@@ -53,37 +53,7 @@ def greedy_algorithm(values, weights, capacity):
 
     return solution
 
-### 4. Dynamic Programming ###
-def knapsack_dp(weights, values, capacity):
-    """Solve the knapsack problem by dynamic programming."""
-    n = len(weights)
-    dp = np.zeros((n + 1, capacity + 1))
-    for i in range(1, n + 1):
-        for w in range(capacity + 1):
-            if weights[i-1] <= w:
-                dp[i][w] = max(dp[i-1][w], dp[i-1][w-weights[i-1]] + values[i-1])
-            else:
-                dp[i][w] = dp[i-1][w]
-
-    # Reconstruct the solution
-    solution = []
-    selected_items = np.zeros(n, dtype=int)
-    optimal_value = 0
-    optimal_weight = 0
-    w = capacity
-    for i in range(n, 0, -1):
-        if dp[i][w] != dp[i-1][w]:
-            selected_items[i-1] = 1
-            w -= weights[i-1]
-
-            optimal_value += values[i-1]
-            optimal_weight += weights[i-1]
-
-    solution.append((selected_items, optimal_value, optimal_weight))
-
-    return solution
-
-### 5. Evaluation Helpers ###
+### 4. Evaluation Helpers ###
 def calc_approx_ratio(predicted_solution, cbc_solution, values):
     # Ensure inputs are flattened lists
     if isinstance(predicted_solution, torch.Tensor):
@@ -102,7 +72,7 @@ def calc_approx_ratio(predicted_solution, cbc_solution, values):
     # Return the approximation ratio
     return predicted_value / cbc_value
 
-### 6. Load and print Pickle file
+### 5. Load and print Pickle file
 def print_pickle(file_path, num_lines=2):
     try:
         with open(file_path, 'rb') as file:

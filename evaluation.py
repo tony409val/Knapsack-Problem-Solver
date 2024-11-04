@@ -1,6 +1,6 @@
 import torch
 import os
-from model_1_utils import greedy_algorithm, load_data
+from utils import greedy_algorithm, load_data
 
 # Function to flip decisions one by one until the solution is feasible
 def greedy_decode(solution, weights, capacity):

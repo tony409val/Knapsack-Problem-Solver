@@ -1,6 +1,6 @@
 import torch
 import pickle
-from model_1_utils import load_model
+from utils import load_model
 
 def greedy_decode(solution, weights, capacity):
     total_weight = sum(solution * weights)

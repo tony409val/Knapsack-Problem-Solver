@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import os
 from model_1_model import NeuralKnapsackSolver
-from model_1_utils import *
+from utils import *
 from visual import *
 
 
