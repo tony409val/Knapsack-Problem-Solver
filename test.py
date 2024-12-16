@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from utils import greedy_algorithm, load_data
 from visual import *
+from model_2_model import TransformerKnapsackModel
 
 # Function to flip decisions one by one until the solution is feasible
 def greedy_decode(solution, weights, capacity):
@@ -58,8 +59,7 @@ def test_model(model_path, data_type, num_items):
     model.eval() # Set model to evaluation mode
 
     # Initialize visual plot
-    fig, ax = initialize_knapsack_plot()
-    current_fig = fig
+    visualizer = KnapsackVisualizer(knapsack_plot=True, approx_plot=True)
 
     with torch.no_grad():
 
@@ -75,10 +75,29 @@ def test_model(model_path, data_type, num_items):
         model_input_values = torch.tensor(values, dtype=torch.float32).unsqueeze(0)
         model_input_weights = torch.tensor(weights, dtype=torch.float32).unsqueeze(0)
         model_input_capacity = torch.tensor([capacity], dtype=torch.float32).unsqueeze(0).expand(-1, len(values))
-        probs = model(model_input_values, model_input_weights, model_input_capacity).squeeze(0)
+       
+        # Check model type and adjust input accordingly
+        if isinstance(model, TransformerKnapsackModel):
+            # Create combined input for TransformerKnapsackModel
+            model_input_combined = torch.cat(
+                (model_input_capacity.unsqueeze(2),
+                    model_input_weights.unsqueeze(2),
+                    model_input_values.unsqueeze(2),
+                    torch.zeros(1, len(values), 3)  # placeholder for additional fields, adjust as necessary
+                ), dim=2
+            )  # Shape: (1, num_items, 6)
+            probs = model(model_input_combined).squeeze(0)
 
-        # Convert probabilities to binary decisions
-        predicted_solution = [1 if p >= 0.5 else 0 for p in probs]
+            # Interpret the output as Q-values, selecting the action with the highest Q-value
+            predicted_solution = [q.argmax().item() for q in probs]
+
+        else:
+            # Use input format for other models
+            probs = model(model_input_values, model_input_weights, model_input_capacity).squeeze(0)
+
+            # Interpret the output as probabilities, using the threshold
+            predicted_solution = [1 if p >= 0.5 else 0 for p in probs]
+       
 
         # Calculate predicted weight
         total_weight = sum(predicted_solution[i] * weights[i] for i in range(len(weights)))
@@ -104,7 +123,8 @@ def test_model(model_path, data_type, num_items):
         greedy_approx_ratio = greedy_value / cbc_value
 
         # Visualize results
-        plot_knapsack(fig, ax, values, weights, predicted_solution, cbc_solution, capacity)
+        visualizer.plot_knapsack(values, weights, predicted_solution, capacity, cbc_solution)
+        visualizer.update_approx_plot([model_approx_ratio, greedy_approx_ratio])
 
     # Display test results
     result_window = tk.Toplevel()
@@ -132,7 +152,10 @@ def test_model(model_path, data_type, num_items):
 
 
     # Close Button
-    ttk.Button(result_window, text="Close", command=result_window.destroy).grid(row=3, column=1, padx=10, pady=10)
+    ttk.Button(result_window, 
+               text="Close", 
+               command=lambda: (visualizer.close_knapsack_plot(), result_window.destroy())
+               ).grid(row=3, column=1, padx=10, pady=10)
 
     result_window.mainloop()
 

@@ -53,7 +53,7 @@ def solve_knapsack_instances(items, capacity):
     prob += pulp.lpSum([items[i][1] * item_vars[i] for i in range(num_items)]) <= capacity
 
     # Solve the problem
-    prob.solve(pulp.PULP_CBC_CMD(timeLimit=5))
+    prob.solve(pulp.PULP_CBC_CMD(timeLimit=60))
 
     # Check if solution is optimal
     if pulp.LpStatus[prob.status] == 'Optimal':
@@ -113,109 +113,110 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
     # data_uc = generate_and_solve_instances('UC', num_instances, num_items, R, H)
 
     # TRAINING DATA
-data_uc_5 = generate_and_solve_instances('UC', 1000, 5, 1000, 100)
-save_data(data_uc_5, 'model_1_training_data_uc_5.pkl')
+# data_uc_5 = generate_and_solve_instances('UC', 1000, 5, 1000, 100)
+# save_data(data_uc_5, 'model_1_training_data_uc_5.pkl')
 
-data_uc_10 = generate_and_solve_instances('UC', 1000, 10, 1000, 100)
-save_data(data_uc_10, 'model_1_training_data_uc_10.pkl')
+# data_uc_10 = generate_and_solve_instances('UC', 1000, 10, 1000, 100)
+# save_data(data_uc_10, 'model_1_training_data_uc_10.pkl')
 
-data_uc_20 = generate_and_solve_instances('UC', 1000, 20, 1000, 100)
-save_data(data_uc_20, 'model_1_training_data_uc_20.pkl')
+# data_uc_20 = generate_and_solve_instances('UC', 1000, 20, 1000, 100)
+# save_data(data_uc_20, 'model_1_training_data_uc_20.pkl')
 
-data_uc_50 = generate_and_solve_instances('UC', 1000, 50, 1000, 100)
-save_data(data_uc_50, 'model_1_training_data_uc_50.pkl')
+# data_uc_50 = generate_and_solve_instances('UC', 1000, 50, 1000, 100)
+# save_data(data_uc_50, 'model_1_training_data_uc_50.pkl')
 
-data_uc_100 = generate_and_solve_instances('UC', 1000, 100, 1000, 100)
-save_data(data_uc_100, 'model_1_training_data_uc_100.pkl')
+# data_uc_100 = generate_and_solve_instances('UC', 1000, 100, 1000, 100)
+# save_data(data_uc_100, 'model_1_training_data_uc_100.pkl')
 
-data_uc_200 = generate_and_solve_instances('UC', 1000, 20, 1000, 100)
-save_data(data_uc_200, 'model_1_training_data_uc_200.pkl')
+# pres_data_uc_200 = generate_and_solve_instances('UC', 100, 200, 1000, 100)
+# save_data(pres_data_uc_200, 'presentation_data_uc_200.pkl')
 
-    # data_sc_5 = generate_and_solve_instances('SC', 50000, 5, 1000, 100)
-    # save_data(data_sc_5, 'model_1_training_data_sc_5.pkl')
-
-    # data_sc_10 = generate_and_solve_instances('SC', 50000, 10, 1000, 100)
-    # save_data(data_sc_10, 'model_1_training_data_sc_10.pkl')
-
-    # data_sc_20 = generate_and_solve_instances('SC', 50000, 20, 1000, 100)
-    # save_data(data_sc_20, 'model_1_training_data_sc_20.pkl')
-
-    # data_sc_50 = generate_and_solve_instances('SC', 50000, 50, 1000, 100)
-    # save_data(data_sc_50, 'model_1_training_data_sc_50.pkl')
- 
-    # data_sc_100 = generate_and_solve_instances('SC', 50000, 100, 1000, 100)
-    # save_data(data_sc_100, 'model_1_training_data_sc_100.pkl')
-
-    # data_sc_200 = generate_and_solve_instances('SC', 50000, 200, 1000, 100)
-    # save_data(data_sc_200, 'model_1_training_data_sc_200.pkl')
-
-    # data_ss_5 = generate_and_solve_instances('SS', 50000, 5, 1000, 100)
-    # save_data(data_ss_5, 'model_1_training_data_ss_5.pkl')
-
-    # data_ss_10 = generate_and_solve_instances('SS', 50000, 10, 1000, 100)
-    # save_data(data_ss_10, 'model_1_training_data_ss_10.pkl')
-
-    # data_ss_20 = generate_and_solve_instances('SS', 50000, 20, 1000, 100)
-    # save_data(data_ss_20, 'model_1_training_data_ss_20.pkl')
-
-    # data_ss_50 = generate_and_solve_instances('SS', 50000, 50, 1000, 100)
-    # save_data(data_ss_50, 'model_1_training_data_ss_50.pkl')
-
-    # data_ss_100 = generate_and_solve_instances('SS', 50000, 100, 1000, 100)
-    # save_data(data_ss_100, 'model_1_training_data_ss_100.pkl')
-
-    # data_ss_200 = generate_and_solve_instances('SS', 50000, 200, 1000, 100)
-    # save_data(data_ss_200, 'model_1_training_data_ss_200.pkl')
+# data_uc_200 = generate_and_solve_instances('UC', 50000, 200, 1000, 100)
+# save_data(data_uc_200, 'training_data_uc_200.pkl')
 
 
-    # # EVALUATION DATA
-    # eval_data_uc_5 = generate_knapsack_instances('UC', 1000, 5, 1000, 100)
-    # eval_data_uc_10 = generate_knapsack_instances('UC', 1000, 10, 1000, 100)
-    # eval_data_uc_20 = generate_knapsack_instances('UC', 1000, 20, 1000, 100)
-    # eval_data_uc_50 = generate_knapsack_instances('UC', 100, 50, 1000, 100)
-    # eval_data_uc_100 = generate_knapsack_instances('UC', 100, 100, 1000, 100)
-    # eval_data_uc_200 = generate_knapsack_instances('UC', 100, 200, 1000, 100)
+# data_sc_5 = generate_and_solve_instances('SC', 50000, 5, 1000, 100)
+# save_data(data_sc_5, 'model_1_training_data_sc_5.pkl')
 
-    # eval_data_sc_5 = generate_knapsack_instances('SC', 1000, 5, 1000, 100)
-    # eval_data_sc_10 = generate_knapsack_instances('SC', 1000, 10, 1000, 100)
-    # eval_data_sc_20 = generate_knapsack_instances('SC', 1000, 20, 1000, 100)
-    # eval_data_sc_50 = generate_knapsack_instances('SC', 100, 50, 1000, 100)
-    # eval_data_sc_100 = generate_knapsack_instances('SC', 100, 100, 1000, 100)
-    # eval_data_sc_200 = generate_knapsack_instances('SC', 100, 200, 1000, 100)
+# data_sc_10 = generate_and_solve_instances('SC', 50000, 10, 1000, 100)
+# save_data(data_sc_10, 'model_1_training_data_sc_10.pkl')
 
-    # eval_data_ss_5 = generate_knapsack_instances('SS', 1000, 5, 1000, 100)
-    # eval_data_ss_10 = generate_knapsack_instances('SS', 1000, 10, 1000, 100)
-    # eval_data_ss_20 = generate_knapsack_instances('SS', 1000, 20, 1000, 100)
-    # eval_data_ss_50 = generate_knapsack_instances('SS', 100, 50, 1000, 100)
-    # eval_data_ss_100 = generate_knapsack_instances('SS', 100, 100, 1000, 100)
-    # eval_data_ss_200 = generate_knapsack_instances('SS', 100, 200, 1000, 100)
+# data_sc_20 = generate_and_solve_instances('SC', 50000, 20, 1000, 100)
+# save_data(data_sc_20, 'model_1_training_data_sc_20.pkl')
 
+# data_sc_50 = generate_and_solve_instances('SC', 50000, 50, 1000, 100)
+# save_data(data_sc_50, 'model_1_training_data_sc_50.pkl')
 
-    # Save data to a file
+# data_sc_100 = generate_and_solve_instances('SC', 50000, 100, 1000, 100)
+# save_data(data_sc_100, 'model_1_training_data_sc_100.pkl')
 
-    # save_data(eval_data_uc_5, 'model_1_eval_data_uc_5.pkl')
-    # save_data(eval_data_uc_10, 'model_1_eval_data_uc_10.pkl')
-    # save_data(eval_data_uc_20, 'model_1_eval_data_uc_20.pkl')
-    # save_data(eval_data_uc_50, 'model_1_eval_data_uc_50.pkl')
-    # save_data(eval_data_uc_100, 'model_1_eval_data_uc_100.pkl')
-    # save_data(eval_data_uc_200, 'model_1_eval_data_uc_200.pkl')
+# data_sc_200 = generate_and_solve_instances('SC', 50000, 200, 1000, 100)
+# save_data(data_sc_200, 'model_1_training_data_sc_200.pkl')
 
-    # save_data(eval_data_sc_5, 'model_1_eval_data_sc_5.pkl')
-    # save_data(eval_data_sc_10, 'model_1_eval_data_sc_10.pkl')
-    # save_data(eval_data_sc_20, 'model_1_eval_data_sc_20.pkl')
-    # save_data(eval_data_sc_50, 'model_1_eval_data_sc_50.pkl')
-    # save_data(eval_data_sc_100, 'model_1_eval_data_sc_100.pkl')
-    # save_data(eval_data_sc_200, 'model_1_eval_data_sc_200.pkl')
+# data_ss_5 = generate_and_solve_instances('SS', 50000, 5, 1000, 100)
+# save_data(data_ss_5, 'model_1_training_data_ss_5.pkl')
 
-    # save_data(eval_data_ss_5, 'model_1_eval_data_ss_5.pkl')
-    # save_data(eval_data_ss_10, 'model_1_eval_data_ss_10.pkl')
-    # save_data(eval_data_ss_20, 'model_1_eval_data_ss_20.pkl')
-    # save_data(eval_data_ss_50, 'model_1_eval_data_ss_50.pkl')
-    # save_data(eval_data_ss_100, 'model_1_eval_data_ss_100.pkl')
-    # save_data(eval_data_ss_200, 'model_1_eval_data_ss_200.pkl')
+# data_ss_10 = generate_and_solve_instances('SS', 50000, 10, 1000, 100)
+# save_data(data_ss_10, 'model_1_training_data_ss_10.pkl')
+
+# data_ss_20 = generate_and_solve_instances('SS', 50000, 20, 1000, 100)
+# save_data(data_ss_20, 'model_1_training_data_ss_20.pkl')
+
+# data_ss_50 = generate_and_solve_instances('SS', 50000, 50, 1000, 100)
+# save_data(data_ss_50, 'model_1_training_data_ss_50.pkl')
+
+# data_ss_100 = generate_and_solve_instances('SS', 50000, 100, 1000, 100)
+# save_data(data_ss_100, 'model_1_training_data_ss_100.pkl')
+
+# data_ss_200 = generate_and_solve_instances('SS', 50000, 200, 1000, 100)
+# save_data(data_ss_200, 'model_1_training_data_ss_200.pkl')
 
 
+# # EVALUATION DATA
+# eval_data_uc_5 = generate_knapsack_instances('UC', 1000, 5, 1000, 100)
+# eval_data_uc_10 = generate_knapsack_instances('UC', 1000, 10, 1000, 100)
+# eval_data_uc_20 = generate_knapsack_instances('UC', 1000, 20, 1000, 100)
+# eval_data_uc_50 = generate_knapsack_instances('UC', 100, 50, 1000, 100)
+# eval_data_uc_100 = generate_knapsack_instances('UC', 100, 100, 1000, 100)
+# eval_data_uc_200 = generate_knapsack_instances('UC', 100, 200, 1000, 100)
 
+# eval_data_sc_5 = generate_knapsack_instances('SC', 1000, 5, 1000, 100)
+# eval_data_sc_10 = generate_knapsack_instances('SC', 1000, 10, 1000, 100)
+# eval_data_sc_20 = generate_knapsack_instances('SC', 1000, 20, 1000, 100)
+# eval_data_sc_50 = generate_knapsack_instances('SC', 100, 50, 1000, 100)
+# eval_data_sc_100 = generate_knapsack_instances('SC', 100, 100, 1000, 100)
+# eval_data_sc_200 = generate_knapsack_instances('SC', 100, 200, 1000, 100)
+
+# eval_data_ss_5 = generate_knapsack_instances('SS', 1000, 5, 1000, 100)
+# eval_data_ss_10 = generate_knapsack_instances('SS', 1000, 10, 1000, 100)
+# eval_data_ss_20 = generate_knapsack_instances('SS', 1000, 20, 1000, 100)
+# eval_data_ss_50 = generate_knapsack_instances('SS', 100, 50, 1000, 100)
+# eval_data_ss_100 = generate_knapsack_instances('SS', 100, 100, 1000, 100)
+# eval_data_ss_200 = generate_knapsack_instances('SS', 100, 200, 1000, 100)
+
+
+# Save data to a file
+
+# save_data(eval_data_uc_5, 'model_1_eval_data_uc_5.pkl')
+# save_data(eval_data_uc_10, 'model_1_eval_data_uc_10.pkl')
+# save_data(eval_data_uc_20, 'model_1_eval_data_uc_20.pkl')
+# save_data(eval_data_uc_50, 'model_1_eval_data_uc_50.pkl')
+# save_data(eval_data_uc_100, 'model_1_eval_data_uc_100.pkl')
+# save_data(eval_data_uc_200, 'model_1_eval_data_uc_200.pkl')
+
+# save_data(eval_data_sc_5, 'model_1_eval_data_sc_5.pkl')
+# save_data(eval_data_sc_10, 'model_1_eval_data_sc_10.pkl')
+# save_data(eval_data_sc_20, 'model_1_eval_data_sc_20.pkl')
+# save_data(eval_data_sc_50, 'model_1_eval_data_sc_50.pkl')
+# save_data(eval_data_sc_100, 'model_1_eval_data_sc_100.pkl')
+# save_data(eval_data_sc_200, 'model_1_eval_data_sc_200.pkl')
+
+# save_data(eval_data_ss_5, 'model_1_eval_data_ss_5.pkl')
+# save_data(eval_data_ss_10, 'model_1_eval_data_ss_10.pkl')
+# save_data(eval_data_ss_20, 'model_1_eval_data_ss_20.pkl')
+# save_data(eval_data_ss_50, 'model_1_eval_data_ss_50.pkl')
+# save_data(eval_data_ss_100, 'model_1_eval_data_ss_100.pkl')
+# save_data(eval_data_ss_200, 'model_1_eval_data_ss_200.pkl')
 
 #     # Output some generated data for verification
 #     print(f"Example Uncorrelated (UC) instance:\n{data_uc[0]}")

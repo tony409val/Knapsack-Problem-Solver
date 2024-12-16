@@ -2,12 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-import numpy as np
 import os
 from model_1_model import NeuralKnapsackSolver
 from utils import *
 from visual import *
-
+from tkinter import messagebox
 
 
 # Helper function to prepare data for Pytorch Dataloader
@@ -44,8 +43,8 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
     #training_data = generate_and_solve_instances(instance_type, num_instances, num_items, value_weight_range, H)
 
     # Load Training Data
-    file_name = f"model_1_training_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "train_data"
+    file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
+    folder_path = "presentation_data"
     file_path = os.path.join(folder_path, file_name)
 
     if os.path.exists(file_path):
@@ -66,11 +65,13 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
     criterion = nn.BCELoss() # Binary Cross-Entropy Loss
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    best_approx_ratio = float('inf') # Initialize best approximation ratio
-    wait = 0 # Counter for early stopping
+    # best_approx_ratio = float('inf') # Initialize best approximation ratio
+    # wait = 0 # Counter for early stopping
 
     # Initialize visual plot
-    fig, ax = initialize_knapsack_plot()
+    visualizer = KnapsackVisualizer(knapsack_plot=True, approx_plot=True)
+    
+    avg_ratios = []
 
     # Training Loop
     for epoch in range(num_epochs):
@@ -78,7 +79,7 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
         model.train()
         running_loss = 0.0
         total_approx_ratio = 0.0
-        num_batches = 0
+        num_instances = 0
 
         for inputs, targets in dataloader:
 
@@ -105,43 +106,47 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
             # Calculate approximation ratio
             approx_ratio = calc_approx_ratio(outputs, targets, values)
             total_approx_ratio += approx_ratio
-            num_batches +=1
+            num_instances +=1
 
             # Plot knapsack selections every `plot_interval` epochs
-            if  num_batches == 1:  # Plot only once per epoch on first batch
+            if  num_instances == 1:  # Plot only once per epoch on first batch
                 model_solution = outputs[0].round().tolist()  # First item in batch for plotting
                 optimal_solution = targets[0].tolist()  # First item in batch (ground truth)
 
-                plot_knapsack(
-                    fig,
-                    ax,
+                visualizer.plot_knapsack(
                     values[0],
                     weights[0],
                     model_solution,
-                    optimal_solution,
-                    capacities[0][0].item()
+                    capacities[0][0].item(),
+                    optimal_solution
                 )
 
+
+        # Calculate average approximation ratio
+        avg_approx_ratio = total_approx_ratio / num_instances
+
+        avg_ratios.append(avg_approx_ratio)
+
+        # Plot average approximation ratio progress
+        if len(avg_ratios) > 2:
+            visualizer.update_approx_plot(avg_ratios)
 
         # Print loss for the epoch
         epoch_loss = running_loss / len(dataloader)
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.4f}")
 
-        # Calculate approximation ratio
-        avg_approx_ratio = total_approx_ratio / num_batches
-
         print(f"Epoch {epoch + 1}/{num_epochs}, Approximation Ratio:{avg_approx_ratio:.4f}")
 
-        # Early stopping based on approximation ratio improvement
-        if abs(avg_approx_ratio - 1) < abs(best_approx_ratio - 1):
-            best_approx_ratio = avg_approx_ratio
-            wait = 0
-            torch.save(model, f"trained_model_1_{data_type}_{num_items}.pth") # Save best model
-        else:
-            wait += 1
-            if wait >= max_wait:
-                print(f"Early stopping at epoch {epoch + 1}. No improvement over 5 epochs.")
-                break
+        # # Early stopping based on approximation ratio improvement
+        # if abs(avg_approx_ratio - 1) < abs(best_approx_ratio - 1):
+        #     best_approx_ratio = avg_approx_ratio
+        #     wait = 0
+        #     torch.save(model, f"trained_model_1_{data_type}_{num_items}.pth") # Save best model
+        # else:
+        #     wait += 1
+        #     if wait >= max_wait:
+        #         print(f"Early stopping at epoch {epoch + 1}. No improvement over 5 epochs.")
+        #         break
 
 
     # Save the trained model
@@ -149,7 +154,11 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
     print("Model saved as 'trained_model_1.pth")
 
     # Exit visual plot
-    close_knapsack_plot(fig)
+    # Show a pop-up dialog when training is complete
+    response = messagebox.showinfo("Training Complete","Training has completed successfully.")
+
+    if response == "ok":
+        visualizer.close_knapsack_plot()
 
 # Example Usage
 # if __name__ == "__main__":

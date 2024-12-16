@@ -1,7 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
-from tkinter import messagebox
+from tkinter import ttk
 from model_1_trainer import *
+from model_2_trainer import *
+from model_3_model import *
 from utils import *
 from evaluation import *
 from test import *
@@ -26,11 +27,27 @@ def main(action, selected_model, data_type, num_items, status_var, root):
     #Train the model
     if action == "train":
         try:
-            train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, learning_rate=0.004, max_wait=5)
+            if selected_model == "Model 1 - GRU Based":
+                train_knapsack_solver(data_type, num_items,
+                                        num_epochs=100,
+                                        batch_size=100,
+                                        learning_rate=0.004,
+                                        max_wait=5)
+            elif selected_model == "Model 2 - RL Transformer":
+                train_transformer_model(data_type, num_items)
+            elif selected_model == "Model 3 - DAO-SNPS":
+                model = DAOSNPS(data_type, num_items, visual=True)
+                model.initialize()
+                values, weights, capacity, optimal_selection, optimal_value, = model.prepare_data()
+                model.run(values, weights, capacity, optimal_selection, max_generations=500, migration_interval=100)
+                model.comparison_window(values, weights, capacity, optimal_selection, optimal_value)
+
             status_var.set("Training completed and model saved.")
+                    
         except Exception as e:
-            print(e)
-            status_var.set(f"Error during training: {e}")
+           print(e)
+           status_var.set(f"Error during training: {e}")
+
         root.update_idletasks()
 
     # Load a model
@@ -38,50 +55,45 @@ def main(action, selected_model, data_type, num_items, status_var, root):
         try:
             model_path = load_model()
             status_var.set(f"Model {model_path} loaded successfully.")
+
         except Exception as e:
             status_var.set(f"Error loading model: {e}")
+
         root.update_idletasks()
 
     # Test the model
     elif action == "test":
-        #try:
-        test_model(model_path, data_type, num_items)
-        #status_var.set("Test completed.")
-        #except Exception as e:
-         #   status_var.set(f"Error during testing: {e}")
-        #root.update_idletasks()
+        try:
+            test_model(model_path, data_type, num_items)
+            status_var.set("Test completed.")
+
+        except Exception as e:
+           status_var.set(f"Error during testing: {e}")
+
+        root.update_idletasks()
 
     # Evaluate the model
     elif action == "evaluate":
-        try:
-            eval_data = evaluate_model(model_path, data_type, num_items)
-            status_var.set("Evaluation completed.")
-            
-            # Show evaluation results
-            if eval_data:
-                eval_results_window = tk.Toplevel(root)
-                eval_results_window.title("Evaluation Results")
+        if selected_model == "Model 3 - DAO-SNPS":
+            #try:
+                model = DAOSNPS(data_type, num_items, visual=False)
+                model.evaluate()
+            #except Exception as e:
+            #    status_var.set(f"Error during evaluation: {e}")
+        else:
+            try:
+                evaluate_model(model_path, data_type, num_items)
+                status_var.set("Evaluation completed.")
 
-                # Labels
-                ttk.Label(eval_results_window, text=f"Infeasibility Rate: {eval_data['infeasibility_rate']}").grid(row=0, column=0, padx=10, pady=10)
-                ttk.Label(eval_results_window, text=f"Model Approximation Ratio: {eval_data['avg_approx_ratio_model']}").grid(row=1, column=0, padx=10, pady=10)
-                ttk.Label(eval_results_window, text=f"Greedy Approximation Ratio: {eval_data['avg_approx_ratio_greedy']}").grid(row=2, column=0, padx=10, pady=10)
-                ttk.Label(eval_results_window, text=f"Model Optimal Instances Rate: {eval_data['optimal_instances_rate_model']}").grid(row=3, column=0, padx=10, pady=10)
-                ttk.Label(eval_results_window, text=f"Greedy Optimal Instances Rate: {eval_data['optimal_instances_rate_greedy']}").grid(row=4, column=0, padx=10, pady=10)
+            except Exception as e:
+                status_var.set(f"Error during evaluation: {e}")
 
-                # Close Button
-                ttk.Button(eval_results_window, text="Close", command=eval_results_window.destroy).grid(row=5, column=0, padx=10, pady=10)
-
-            else:
-                status_var.set("Evaluation data is empty.")
-            
-        except Exception as e:
-            status_var.set(f"Error during evaluation: {e}")
         
         root.update_idletasks()
 
     else:
         status_var.set("Invalid action or missing model file.")
+
         root.update_idletasks()
 
 # GUI Function
@@ -93,7 +105,6 @@ def create_gui():
     num_items_var = tk.StringVar(value="10") 
     data_type_var=tk.StringVar(value="UC") 
     algorithm_var = tk.StringVar(value="Model 1 - GRU Based")
-    model_file_var = tk.StringVar()
     status_var = tk.StringVar(value="Ready") # Status message default   
     
     # Create GUI elements for user input
@@ -112,7 +123,7 @@ def create_gui():
 
     # Algorithm Selection Label
     ttk.Label(root, text="Select Model:").pack(pady=10)
-    algorithm_dropdown = ttk.Combobox(root, textvariable=algorithm_var, values=["Model 1 - GRU Based"])
+    algorithm_dropdown = ttk.Combobox(root, textvariable=algorithm_var, values=["Model 1 - GRU Based","Model 2 - RL Transformer", "Model 3 - DAO-SNPS"])
     algorithm_dropdown.pack(pady=10)
     algorithm_dropdown.set(algorithm_var.get())
 

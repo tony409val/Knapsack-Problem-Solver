@@ -1,7 +1,6 @@
 import torch
 import pickle
-import os
-from tkinter import ttk, filedialog
+from tkinter import filedialog
 
 
 ### 1. Model Saving and Loading ###
@@ -53,7 +52,7 @@ def greedy_algorithm(values, weights, capacity):
 
     return solution
 
-### 4. Evaluation Helpers ###
+### 4. Approximation Ratio Calculator ###
 def calc_approx_ratio(predicted_solution, cbc_solution, values):
     # Ensure inputs are flattened lists
     if isinstance(predicted_solution, torch.Tensor):
@@ -71,6 +70,26 @@ def calc_approx_ratio(predicted_solution, cbc_solution, values):
 
     # Return the approximation ratio
     return predicted_value / cbc_value
+
+### 4. Reward Approximation Ratio Calculator (unsupervised models) ###
+def calc_reward_approx(rewards, optimal_rewards):
+    """
+    Calculates the cumulative average approximation ratio of model rewards to optimal rewards.
+
+    Parameters:
+    - rewards: List of model rewards for each episode
+    - optimal_reward: List of optimal reward for each episode
+
+    Returns:
+    - List of cumulative average approximation ratios for each episode
+    """
+    # Calculate the approximation ratio for each episode
+    approximation_ratios = [
+        reward / optimal if optimal > 0 else 0
+        for reward, optimal in zip(rewards, optimal_rewards)
+    ]
+    
+    return approximation_ratios
 
 ### 5. Load and print Pickle file
 def print_pickle(file_path, num_lines=2):
@@ -90,8 +109,8 @@ def print_pickle(file_path, num_lines=2):
         print(f"An error occurred: {e}")
 
 ## Print pickle
-# file_name = f"model_1_eval_data_uc_10.pkl"  
-folder_path = 'eval_data'
+# file_name = f"training_data_uc_200.pkl"  
+# folder_path = 'train_data'
 # file_path = os.path.join(folder_path, file_name)
 # print(f"EVAL DATA----------------------")
 # print_pickle(file_path)
