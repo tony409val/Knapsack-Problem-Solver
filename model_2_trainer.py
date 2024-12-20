@@ -23,10 +23,12 @@ MEMORY_SIZE = 50000
 HUBER_DELTA = 2.0
 
 # Training loop
-def train_transformer_model(data_type, num_items):
+def train_transformer_model(data_type, num_items, visual=False):
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "presentation_data"
+    folder_path = "train_data"
     file_path = os.path.join(folder_path, file_name)
 
     if os.path.exists(file_path):
@@ -40,8 +42,8 @@ def train_transformer_model(data_type, num_items):
     # Initialize environment and model
     env = KnapsackEnv(values, weights, capacities)
 
-    model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4)
-    target_model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4)
+    model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4).to(device)
+    target_model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4).to(device)
     target_model.load_state_dict(model.state_dict())  # Sync with main model initially
     optimizer = optim.Adam(model.parameters(), lr=LR)
 
@@ -52,7 +54,11 @@ def train_transformer_model(data_type, num_items):
     epsilon = EPSILON_START
 
     # Visualization setup
-    visualizer = KnapsackVisualizer(knapsack_plot=True, reward_plot=True)
+    if visual:
+        visualizer = KnapsackVisualizer(knapsack_plot=True, reward_plot=True)
+    else:
+        visualizer = None
+
     rewards = []
     optimal_rewards = []
 
@@ -66,7 +72,7 @@ def train_transformer_model(data_type, num_items):
         
         for t in range(int(num_items)):
             # Select and take action
-            action = select_action(state, epsilon, model)
+            action = select_action(state, epsilon, model, device)
 
             # Update selected items based on action (1 = select, 0 = skip)
             selected_items[t] = action
@@ -81,7 +87,7 @@ def train_transformer_model(data_type, num_items):
             
             # Train only if enough experience is available
             if len(replay_buffer) >= BATCH_SIZE:
-                train_on_batch(model, target_model, optimizer, replay_buffer, BATCH_SIZE, GAMMA, HUBER_DELTA)
+                train_on_batch(model, target_model, optimizer, replay_buffer, device, BATCH_SIZE, GAMMA, HUBER_DELTA)
             
             if done:
                 break
@@ -93,20 +99,22 @@ def train_transformer_model(data_type, num_items):
         if episode % TARGET_UPDATE_INTERVAL == 0:
             target_model.load_state_dict(model.state_dict())
 
-        # Visualize model selections and approximation ratio after every episode
-        visualizer.plot_knapsack(
-            torch.tensor(values[instance_index]),   
-            torch.tensor(weights[instance_index]),  
-            selected_items,             
-            capacity=capacities[instance_index][0],
-            optimal_solution=solutions[instance_index]
-        )
 
         rewards.append(total_reward) # Record total reward of the current episode
         optimal_rewards.append(optimal_values[instance_index]) # Record optimal reward of the current episode
 
         # Calculate the  reward approximation ratio for this episode
         approx_ratios = calc_reward_approx(rewards, optimal_rewards)
+
+        # Visualize model selections and approximation ratio after every episode
+        if visualizer and visualizer.knapsack_plot:
+            visualizer.plot_knapsack(
+                torch.tensor(values[instance_index]),   
+                torch.tensor(weights[instance_index]),  
+                selected_items,             
+                capacity=capacities[instance_index][0],
+                optimal_solution=solutions[instance_index]
+            )
 
         visualizer.update_reward_plot(approx_ratios) # Update reward plot
 
@@ -144,7 +152,7 @@ def prepare_data(data):
     return values, weights, capacities, solutions, optimal_values
 
 # Action selection function with epsilon-greedy strategy
-def select_action(state, epsilon, model):
+def select_action(state, epsilon, model, device):
     """Selects action using epsilon-greedy policy."""
     if random.random() < epsilon:
         return random.choice([0, 1])
@@ -158,16 +166,15 @@ def select_action(state, epsilon, model):
                 state["item_weight"],      # Should be a single value
                 state["item_value"],       # Should be a single value
                 state["remaining_steps"]   # Should be a single value
-            ], dtype=torch.float32).unsqueeze(0)  # Add batch dimension
+            ], dtype=torch.float32, device=device).unsqueeze(0)  # Add batch dimension
         except TypeError as e:
             print("Error in constructing state tensor:", e)
-            print("State dictionary:", state)  # Debugging output
             raise
 
         with torch.no_grad():
             return model(state_tensor).argmax().item()
 
-def train_on_batch(model, target_model, optimizer, replay_buffer, batch_size, gamma, huber_delta):
+def train_on_batch(model, target_model, optimizer, replay_buffer, device, batch_size, gamma, huber_delta):
     """Trains model on a batch sampled from replay buffer."""
     # Experience replay sampling
     batch = random.sample(replay_buffer, batch_size)
@@ -183,7 +190,7 @@ def train_on_batch(model, target_model, optimizer, replay_buffer, batch_size, ga
             state["item_value"],
             state["remaining_steps"]
         ] for state in states
-    ], dtype=torch.float32)
+    ], dtype=torch.float32, device=device)
 
     next_states = torch.tensor([
         [
@@ -194,12 +201,12 @@ def train_on_batch(model, target_model, optimizer, replay_buffer, batch_size, ga
             next_state["item_value"],
             next_state["remaining_steps"]
         ] for next_state in next_states
-    ], dtype=torch.float32)
+    ], dtype=torch.float32, device=device)
 
     # Convert actions, rewards, and dones to tensors
-    actions = torch.tensor(actions, dtype=torch.long)
-    rewards = torch.tensor(rewards, dtype=torch.float32)
-    dones = torch.tensor(dones, dtype=torch.float32)
+    actions = torch.tensor(actions, dtype=torch.long, device=device)
+    rewards = torch.tensor(rewards, dtype=torch.float32, device=device)
+    dones = torch.tensor(dones, dtype=torch.float32, device=device)
 
     # Compute Q-values for current states
     q_values = model(states)
@@ -209,6 +216,7 @@ def train_on_batch(model, target_model, optimizer, replay_buffer, batch_size, ga
     # Compute Q-values for next states with target model
     with torch.no_grad():
         max_next_q_values = target_model(next_states).max(1)[0]
+        # Bellman Equation - maximum expected reward in future instances
         target_q_values = rewards + (1 - dones) * gamma * max_next_q_values
 
     # Compute loss and backpropagate

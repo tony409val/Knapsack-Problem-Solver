@@ -29,7 +29,7 @@ class TransformerKnapsackModel(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
-        # Output layer for selection probability
+        # Output layer for Q-values of each action
         self.output_layer = nn.Linear(hidden_dim, 2)
 
     def forward(self, state):

@@ -31,6 +31,8 @@ def greedy_decode(solution, weights, capacity):
 # Function to evaluate the model on test data
 def evaluate_model(model_path, data_type, num_items):
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # Load Evaluation data
     eval_file_name = f"model_1_eval_data_{data_type.lower()}_{num_items}.pkl"
     folder_path = "eval_data"
@@ -59,7 +61,8 @@ def evaluate_model(model_path, data_type, num_items):
     runtimes = []
 
     # Load the model and set it to evaluation mode
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=device)
+    model.to(device)
     model.eval()
 
     with torch.no_grad():

@@ -138,11 +138,15 @@ class DAOSNPS:
             best_fitness = max([ind.fitness.max() for ind in subpopulation.individuals])
             print(f"  Subpopulation {sub_idx + 1} Best Fitness: {best_fitness}")
 
+            best_individual = max(subpopulation.individuals, key=lambda ind: ind.fitness.max())
+            max_row_idx = np.argmax(best_individual.fitness)
+            model_solution = best_individual.binary_matrix[max_row_idx]
+
+            if generation % migration_interval == 0:
+                self.perform_information_exchange()
+
             # Update knapsack plot in real time
-            if self.visualizer:
-                best_individual = max(subpopulation.individuals, key=lambda ind: ind.fitness.max())
-                max_row_idx = np.argmax(best_individual.fitness)
-                model_solution = best_individual.binary_matrix[max_row_idx]
+            if self.visualizer and self.visualizer.knapsack_plot:
 
                 self.visualizer.plot_knapsack(values, weights, model_solution, capacity, optimal_selection)
 
@@ -153,8 +157,6 @@ class DAOSNPS:
                 if len(approx_ratios) > 2:
                     self.visualizer.update_approx_plot(approx_ratios)
 
-            if generation % migration_interval == 0:
-                self.perform_information_exchange()
 
     def perform_information_exchange(self):
         for i in range(len(self.subpopulations)):
@@ -189,7 +191,7 @@ class DAOSNPS:
             values, weights, capacity, optimal_selection, optimal_value
         """
         file_name = f"training_data_{self.data_type.lower()}_{self.num_items}.pkl"
-        folder_path = "presentation_data"
+        folder_path = "train_data"
         file_path = os.path.join(folder_path, file_name)
 
         if os.path.exists(file_path):

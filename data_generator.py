@@ -128,8 +128,8 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
 # data_uc_100 = generate_and_solve_instances('UC', 1000, 100, 1000, 100)
 # save_data(data_uc_100, 'model_1_training_data_uc_100.pkl')
 
-# pres_data_uc_200 = generate_and_solve_instances('UC', 100, 200, 1000, 100)
-# save_data(pres_data_uc_200, 'presentation_data_uc_200.pkl')
+# pres_data_uc_200 = generate_and_solve_instances('UC', 100, 100, 1000, 100)
+# save_data(pres_data_uc_200, 'presentation_data_uc_100.pkl')
 
 # data_uc_200 = generate_and_solve_instances('UC', 50000, 200, 1000, 100)
 # save_data(data_uc_200, 'training_data_uc_200.pkl')

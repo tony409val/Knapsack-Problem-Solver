@@ -55,7 +55,10 @@ def test_model(model_path, data_type, num_items):
     cbc_solution = cbc_solutions[0][random_idx]
 
     # Load the model and set evaluation mode
-    model = torch.load(model_path) # load the model
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = torch.load(model_path, map_location=device) # load the model
+    model.to(device)
     model.eval() # Set model to evaluation mode
 
     # Initialize visual plot
@@ -72,9 +75,9 @@ def test_model(model_path, data_type, num_items):
         cbc_weight = sum(cbc_solution[i] * weights[i] for i in range(len(weights)))
 
         # Model's prediction
-        model_input_values = torch.tensor(values, dtype=torch.float32).unsqueeze(0)
-        model_input_weights = torch.tensor(weights, dtype=torch.float32).unsqueeze(0)
-        model_input_capacity = torch.tensor([capacity], dtype=torch.float32).unsqueeze(0).expand(-1, len(values))
+        model_input_values = torch.tensor(values, dtype=torch.float32).unsqueeze(0).to(device)
+        model_input_weights = torch.tensor(weights, dtype=torch.float32).unsqueeze(0).to(device)
+        model_input_capacity = torch.tensor([capacity], dtype=torch.float32).unsqueeze(0).expand(-1, len(values)).to(device)
        
         # Check model type and adjust input accordingly
         if isinstance(model, TransformerKnapsackModel):

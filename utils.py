@@ -1,5 +1,6 @@
 import torch
 import pickle
+import os
 from tkinter import filedialog
 
 
@@ -109,8 +110,8 @@ def print_pickle(file_path, num_lines=2):
         print(f"An error occurred: {e}")
 
 ## Print pickle
-# file_name = f"training_data_uc_200.pkl"  
-# folder_path = 'train_data'
+# file_name = f"training_data_uc_100.pkl"  
+# folder_path = 'presentation_data'
 # file_path = os.path.join(folder_path, file_name)
 # print(f"EVAL DATA----------------------")
 # print_pickle(file_path)

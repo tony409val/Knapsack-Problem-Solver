@@ -23,7 +23,6 @@ def prepare_data(data):
         capacities.append([capacity] * len(items)) # Repeat capacity for each item
         solutions.append(solution) # Optimal solution (0 or 1 for each item)
 
-
     # Convert to Pytorch tensors
     values = torch.tensor(values, dtype=torch.float32)
     weights = torch.tensor(weights, dtype=torch.float32)
@@ -37,20 +36,23 @@ def prepare_data(data):
     return inputs, solutions
 
 # Training Function
-def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, learning_rate=0.004, max_wait=5):
+def train_knapsack_solver(data_type, num_items, visual, num_epochs=100, batch_size=100, learning_rate=0.004, max_wait=5):
    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # Generate instances
     #training_data = generate_and_solve_instances(instance_type, num_instances, num_items, value_weight_range, H)
 
     # Load Training Data
     file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "presentation_data"
+    folder_path = "train_data"
     file_path = os.path.join(folder_path, file_name)
 
     if os.path.exists(file_path):
         training_data = load_data(file_path)
     else:
         raise FileNotFoundError(f"Training data file '{file_path}' not found.")
+
 
     inputs, solutions = prepare_data(training_data)
     dataset = TensorDataset(inputs, solutions)
@@ -59,8 +61,7 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
     # Define model, loss function, and optimizer
     input_dim = 3 # (value, weight, capacity)
     hidden_dim = 32
-    model = NeuralKnapsackSolver(input_dim, hidden_dim)
-
+    model = NeuralKnapsackSolver(input_dim, hidden_dim).to(device)
 
     criterion = nn.BCELoss() # Binary Cross-Entropy Loss
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -69,7 +70,10 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
     # wait = 0 # Counter for early stopping
 
     # Initialize visual plot
-    visualizer = KnapsackVisualizer(knapsack_plot=True, approx_plot=True)
+    if visual:
+        visualizer = KnapsackVisualizer(knapsack_plot=False, approx_plot=True)
+    else:
+        visualizer = None
     
     avg_ratios = []
 
@@ -82,6 +86,10 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
         num_instances = 0
 
         for inputs, targets in dataloader:
+
+            # Move inputs and targets to GPU
+            inputs = inputs.to(device)
+            targets = targets.to(device)
 
             # Extract values, weights, capacities from the input tensor
             values = inputs[:, :, 0] # Extract values
@@ -109,27 +117,29 @@ def train_knapsack_solver(data_type, num_items, num_epochs=100, batch_size=100, 
             num_instances +=1
 
             # Plot knapsack selections every `plot_interval` epochs
-            if  num_instances == 1:  # Plot only once per epoch on first batch
-                model_solution = outputs[0].round().tolist()  # First item in batch for plotting
-                optimal_solution = targets[0].tolist()  # First item in batch (ground truth)
+            if visualizer and visualizer.knapsack_plot:
+                if  num_instances == 1:  # Plot only once per epoch on first batch
+                    model_solution = outputs[0].round().tolist()  # First item in batch for plotting
+                    optimal_solution = targets[0].tolist()  # First item in batch (ground truth)
 
-                visualizer.plot_knapsack(
-                    values[0],
-                    weights[0],
-                    model_solution,
-                    capacities[0][0].item(),
-                    optimal_solution
-                )
+                    visualizer.plot_knapsack(
+                        values[0],
+                        weights[0],
+                        model_solution,
+                        capacities[0][0].item(),
+                        optimal_solution
+                    )
 
-
+        
         # Calculate average approximation ratio
         avg_approx_ratio = total_approx_ratio / num_instances
 
         avg_ratios.append(avg_approx_ratio)
 
         # Plot average approximation ratio progress
-        if len(avg_ratios) > 2:
-            visualizer.update_approx_plot(avg_ratios)
+        if visualizer:
+            if len(avg_ratios) > 2:
+                visualizer.update_approx_plot(avg_ratios)
 
         # Print loss for the epoch
         epoch_loss = running_loss / len(dataloader)
