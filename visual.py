@@ -116,15 +116,15 @@ class KnapsackVisualizer:
             self.approx_ax.set_ylabel("Approx Ratio")
             self.approx_ax.legend(loc="upper left")
 
-        elif len(avg_ratios) == 2:
+        elif len(avg_ratios) == 1:
             # Bar Plot for (average) approximation ratios
 
             # Bar plot to show the (average) ratios
             self.approx_ax.bar(
-                ["Model", "Greedy"],  # Labels for the two bars
+                ["Model"],  # Labels for the two bars
                 avg_ratios,           # Heights for each bar
-                color=['blue', 'orange'],
-                label=["Model (Average) Approx Ratio", "Greedy (Average) Approx Ratio"]
+                color=['blue'],
+                label=["Model (Average) Approx Ratio"]
             )
 
             # Draw the optimal approximation ratio as a horizontal line
@@ -217,19 +217,47 @@ class KnapsackVisualizer:
             sorted_model_solution = np.array(model_solution)[sorted_indices]
             sorted_optimal_solution = np.array(optimal_solution)[sorted_indices] # Sort by weight 
 
-            # Plot all items as gray dots for context
-            self.ax.scatter(sorted_weights, sorted_values, color='gray', s=100, label='Items')
+            # not selected and not optimal items (gray dots)
+            normal_indices = (sorted_model_solution == 0) & (sorted_optimal_solution == 0)
+            self.ax.scatter(
+                sorted_weights[normal_indices], 
+                sorted_values[normal_indices], 
+                color='gray', 
+                s=100, 
+                label='Not Selected Not Optimal'
+            )
 
-            # Model solution line
-            model_selected_weights = sorted_weights[sorted_model_solution == 1]
-            model_selected_values = sorted_values[sorted_model_solution == 1]
-            self.ax.scatter(model_selected_weights, model_selected_values, color='gray', edgecolor='blue', s=200, label='Model Selection')
-            
-            # Optimal solution line,  
-            optimal_selected_weights = sorted_weights[sorted_optimal_solution == 1]
-            optimal_selected_values = sorted_values[sorted_optimal_solution == 1]
-            self.ax.scatter(optimal_selected_weights, optimal_selected_values, color='gray', edgecolor='red', s=100, label='Optimal Selection')
-            
+            # Optimal but not selected items (red bodied dots)
+            optimal_not_selected_indices = (sorted_model_solution == 0) & (sorted_optimal_solution == 1)
+            self.ax.scatter(
+                sorted_weights[optimal_not_selected_indices], 
+                sorted_values[optimal_not_selected_indices], 
+                color='red', 
+                s=100, 
+                label='Optimal but Not Selected'
+            )
+
+            # Selected but not optimal items (grey body with blue edge color)
+            selected_not_optimal_indices = (sorted_model_solution == 1) & (sorted_optimal_solution == 0)
+            self.ax.scatter(
+                sorted_weights[selected_not_optimal_indices], 
+                sorted_values[selected_not_optimal_indices], 
+                color='gray', 
+                edgecolor='blue', 
+                s=100, 
+                label='Selected but Not Optimal'
+            )
+
+            # Optimal and selected items (red bodied with blue edge)
+            optimal_and_selected_indices = (sorted_model_solution == 1) & (sorted_optimal_solution == 1)
+            self.ax.scatter(
+                sorted_weights[optimal_and_selected_indices], 
+                sorted_values[optimal_and_selected_indices], 
+                color='red', 
+                edgecolor='blue', 
+                s=100, 
+                label='Optimal and Selected'
+            )            
             # Set plot limits
             self.ax.set_xlim(0, max(weights) + 200)
             self.ax.set_ylim(0, max(values) + 200)

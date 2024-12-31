@@ -1,5 +1,7 @@
 import pulp
 import random
+import time
+import numpy as np
 from utils import save_data
 
 # Generate knapsack instances with increasing difficulty in batches of 100
@@ -52,22 +54,27 @@ def solve_knapsack_instances(items, capacity):
     # Constraint: Total weight must be <= capacity
     prob += pulp.lpSum([items[i][1] * item_vars[i] for i in range(num_items)]) <= capacity
 
+    start_time = time.time()
+
     # Solve the problem
     prob.solve(pulp.PULP_CBC_CMD(timeLimit=60))
+
+    runtime = time.time() - start_time
 
     # Check if solution is optimal
     if pulp.LpStatus[prob.status] == 'Optimal':
 
         # Extract the solution (binary vector indicating which items are included) and the Optimal Value (objective)
         solution = [int(var.varValue) for var in item_vars]
-        return solution, pulp.value(prob.objective)
+        return solution, pulp.value(prob.objective), runtime
     
-    return None, None # Return None if the solution is not optimal
+    return None, None, runtime # Return None if the solution is not optimal
 
 def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=100):
     instances = []
     solutions = []
     objectives = []
+    runtimes = []
 
     # Generate instances in batches
     for i in range(num_instances):
@@ -75,9 +82,9 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
         # Generate and solve the instance, regenerate until an optimal solution is found (feasible instance)
         items, capacity = generate_knapsack_instances(instance_type, num_items, i % H, R, H)
 
-        solution, objective = None, None
+        solution, objective, runtime = None, None, 0
         while solution is None:
-            solution, objective = solve_knapsack_instances(items, capacity)
+            solution, objective, runtime = solve_knapsack_instances(items, capacity)
             if solution is None:
                 # Regenerate the entire instance if not optimal
                 items, capacity = generate_knapsack_instances(instance_type, num_items, i % H, R, H)
@@ -86,7 +93,10 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
         instances.append((items, capacity))
         solutions.append(solution)
         objectives.append(objective)
+        runtimes.append(runtime)
 
+    avg_runtime = np.mean(runtimes)
+    print(f'Average CBC runtime: {avg_runtime}')
     
     # Format the data for training
     data = []
@@ -113,8 +123,8 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
     # data_uc = generate_and_solve_instances('UC', num_instances, num_items, R, H)
 
     # TRAINING DATA
-# data_uc_5 = generate_and_solve_instances('UC', 1000, 5, 1000, 100)
-# save_data(data_uc_5, 'model_1_training_data_uc_5.pkl')
+data_uc_5 = generate_and_solve_instances('UC', 1000, 5, 1000, 100)
+save_data(data_uc_5, 'model_1_training_data_uc_5.pkl')
 
 # data_uc_10 = generate_and_solve_instances('UC', 1000, 10, 1000, 100)
 # save_data(data_uc_10, 'model_1_training_data_uc_10.pkl')
@@ -122,13 +132,13 @@ def generate_and_solve_instances(instance_type, num_instances, num_items, R, H=1
 # data_uc_20 = generate_and_solve_instances('UC', 1000, 20, 1000, 100)
 # save_data(data_uc_20, 'model_1_training_data_uc_20.pkl')
 
-# data_uc_50 = generate_and_solve_instances('UC', 1000, 50, 1000, 100)
+# data_uc_50 = generate_and_solve_instances('UC', 100, 50, 1000, 100)
 # save_data(data_uc_50, 'model_1_training_data_uc_50.pkl')
 
-# data_uc_100 = generate_and_solve_instances('UC', 1000, 100, 1000, 100)
+# data_uc_100 = generate_and_solve_instances('UC', 100, 100, 1000, 100)
 # save_data(data_uc_100, 'model_1_training_data_uc_100.pkl')
 
-# pres_data_uc_200 = generate_and_solve_instances('UC', 100, 100, 1000, 100)
+# pres_data_uc_200 = generate_and_solve_instances('UC', 100, 200, 1000, 100)
 # save_data(pres_data_uc_200, 'presentation_data_uc_100.pkl')
 
 # data_uc_200 = generate_and_solve_instances('UC', 50000, 200, 1000, 100)

@@ -26,28 +26,28 @@ def main(action, selected_model, data_type, num_items, status_var, root):
 
     #Train the model
     if action == "train":
-        try:
-            if selected_model == "Model 1 - GRU Based":
-                train_knapsack_solver(data_type, num_items,
-                                        visual=True,
-                                        num_epochs=100,
-                                        batch_size=100,
-                                        learning_rate=0.004,
-                                        max_wait=5)
-            elif selected_model == "Model 2 - RL Transformer":
-                train_transformer_model(data_type, num_items, visual=True)
-            elif selected_model == "Model 3 - DAO-SNPS":
-                model = DAOSNPS(data_type, num_items, visual=True)
-                model.initialize()
-                values, weights, capacity, optimal_selection, optimal_value, = model.prepare_data()
-                model.run(values, weights, capacity, optimal_selection, max_generations=500, migration_interval=100)
-                model.comparison_window(values, weights, capacity, optimal_selection, optimal_value)
+        # try:
+        if selected_model == "Model 1 - GRU Based":
+            train_knapsack_solver(data_type, num_items,
+                                    visual=True,
+                                    num_epochs=100,
+                                    batch_size=100,
+                                    learning_rate=0.004,
+                                    max_wait=5)
+        elif selected_model == "Model 2 - RL Transformer":
+            train_transformer_model(data_type, num_items, visual=True)
+        elif selected_model == "Model 3 - DAO-SNPS":
+            model = DAOSNPS(data_type, num_items, visual=True)
+            model.initialize()
+            values, weights, capacity, optimal_selection, optimal_value, = model.prepare_data()
+            model.run(values, weights, capacity, optimal_selection, max_generations=500, migration_interval=100)
+            model.comparison_window(values, weights, capacity, optimal_selection, optimal_value)
 
-            status_var.set("Training completed and model saved.")
+        status_var.set("Training completed and model saved.")
                     
-        except Exception as e:
-           print(e)
-           status_var.set(f"Error during training: {e}")
+        # except Exception as e:
+        #    print(e)
+        #    status_var.set(f"Error during training: {e}")
 
         root.update_idletasks()
 

@@ -45,7 +45,7 @@ def train_knapsack_solver(data_type, num_items, visual, num_epochs=100, batch_si
 
     # Load Training Data
     file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "train_data"
+    folder_path = "presentation_data"
     file_path = os.path.join(folder_path, file_name)
 
     if os.path.exists(file_path):
@@ -71,7 +71,7 @@ def train_knapsack_solver(data_type, num_items, visual, num_epochs=100, batch_si
 
     # Initialize visual plot
     if visual:
-        visualizer = KnapsackVisualizer(knapsack_plot=False, approx_plot=True)
+        visualizer = KnapsackVisualizer(knapsack_plot=True, approx_plot=True)
     else:
         visualizer = None
     

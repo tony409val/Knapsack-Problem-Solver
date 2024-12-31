@@ -42,7 +42,7 @@ def train_transformer_model(data_type, num_items, visual=False):
     # Initialize environment and model
     env = KnapsackEnv(values, weights, capacities)
 
-    model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4).to(device)
+    model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=2).to(device)
     target_model = TransformerKnapsackModel(input_dim=6, hidden_dim=96, num_layers=2, num_heads=4).to(device)
     target_model.load_state_dict(model.state_dict())  # Sync with main model initially
     optimizer = optim.Adam(model.parameters(), lr=LR)
@@ -55,7 +55,7 @@ def train_transformer_model(data_type, num_items, visual=False):
 
     # Visualization setup
     if visual:
-        visualizer = KnapsackVisualizer(knapsack_plot=True, reward_plot=True)
+        visualizer = KnapsackVisualizer(knapsack_plot=False, reward_plot=True)
     else:
         visualizer = None
 

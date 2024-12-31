@@ -19,6 +19,34 @@ class SpikingNeuralPSystem:
     def initialize(self):
         self.binary_matrix = np.random.randint(0, 2, (self.num_neurons, self.problem_length))
 
+    # def update_supply_neurons(self):
+    #     """
+    #     Update the state of the supply neurons (\(r_{m+1}\) and \(r_{m+2}\)) based on firing and forgetting rules.
+    #     """
+    #     for i in range(self.num_neurons - 2, self.num_neurons):  # Only for supply neurons
+    #         for j in range(self.problem_length):
+    #             if np.random.rand() < self.firing_probs[i]:  # Firing rule
+    #                 self.binary_matrix[i, j] = 1
+    #             elif np.random.rand() < self.forgetting_probs[i]:  # Forgetting rule
+    #                 self.binary_matrix[i, j] = 0
+
+    # def supply_spikes(self):
+    #     """
+    #     Supply spikes from the supply neurons to the working neurons and the other supply neuron
+    #     by influencing their probabilities rather than directly modifying the binary state.
+    #     """
+    #     for i in range(self.num_neurons - 2):  # Working neurons
+    #             for j in range(self.problem_length):
+    #                 if self.binary_matrix[self.num_neurons - 2, j] == 1 or self.binary_matrix[self.num_neurons - 1, j] == 1:
+    #                     self.binary_matrix[i, j] = 1
+                        
+    #     # Cross-supply between the two supply neurons (optional to control noise)
+    #     for j in range(self.problem_length):
+    #         if self.binary_matrix[self.num_neurons - 2, j] == 1:  # \(r_{m+1}\) fires
+    #             self.binary_matrix[self.num_neurons - 1, j] = 1
+    #         if self.binary_matrix[self.num_neurons - 1, j] == 1:  # \(r_{m+2}\) fires
+    #             self.binary_matrix[self.num_neurons - 2, j] = 1
+
     def update_probabilities(self, target_values, n_0, n_1, n):
         """
         Update the probabilities in the prob_matrix based on the target values and allele counts.
@@ -71,7 +99,6 @@ class SubPopulation:
                     if np.random.rand() < mutation_prob:
                         # Flip the bit
                         individual.binary_matrix[i, j] = 1 - individual.binary_matrix[i, j]
-
         # Recalculate fitness after mutation
         individual.calculate_fitness(values, weights, capacity)
 
@@ -124,6 +151,7 @@ class DAOSNPS:
     def run(self, values, weights, capacity, optimal_selection,max_generations=500, migration_interval=100):
 
         approx_ratios = [] # To track approximatin ratios for visualization
+        skip_counter = 0
 
         for generation in range(max_generations):
             print(f"Generation {generation + 1}:")
@@ -134,9 +162,14 @@ class DAOSNPS:
                 subpopulation.update_probabilities()  # Adjust probabilities after fitness evaluation
                 subpopulation.mutate(values, weights, capacity, self.mutation_probability)
 
-            # Log the best fitness in the subpopulation
-            best_fitness = max([ind.fitness.max() for ind in subpopulation.individuals])
-            print(f"  Subpopulation {sub_idx + 1} Best Fitness: {best_fitness}")
+                # Log the best fitness in the subpopulation
+                best_fitness = max([ind.fitness.max() for ind in subpopulation.individuals])
+                print(f"  Subpopulation {sub_idx + 1} Best Fitness: {best_fitness}")
+
+            if best_fitness == 0:
+                skip_counter += 1
+                if skip_counter >= 10:
+                    return # skip instance (temp bug fix)
 
             best_individual = max(subpopulation.individuals, key=lambda ind: ind.fitness.max())
             max_row_idx = np.argmax(best_individual.fitness)
@@ -158,7 +191,7 @@ class DAOSNPS:
                     self.visualizer.update_approx_plot(approx_ratios)
 
 
-    def perform_information_exchange(self):
+    def perform_information_exchange(self): 
         for i in range(len(self.subpopulations)):
             subpop_a = self.subpopulations[i]
             subpop_b = self.subpopulations[(i + 1) % len(self.subpopulations)]
@@ -199,8 +232,6 @@ class DAOSNPS:
         else:
             raise FileNotFoundError(f"Training data file '{file_path}' not found.")
         
-        print(training_data)
-
         random_instance = random.choice(training_data)
         items = random_instance[0]
         capacity = random_instance[1]
@@ -208,7 +239,6 @@ class DAOSNPS:
         optimal_value = random_instance[3]
 
         values, weights = zip(*items)
-
         return np.array(values), np.array(weights), capacity, optimal_selection, optimal_value
     
     def comparison_window(self, values, weights, capacity, optimal_selection, optimal_value):
@@ -273,25 +303,25 @@ class DAOSNPS:
             ttk.Label(result_window, text=f"Solution: {model_solution}, Total Weight: {total_weight}/{capacity}, Total Value: {model_value}, Approximation Ratio: {model_approx_ratio}"
                       ).grid(row=0, column=1, padx=10, pady=10)
 
-            ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
-            ttk.Label(result_window, text=f"Solution: {greedy_solution}, Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}"
-                      ).grid(row=1, column=1, padx=10, pady=10)
+            # ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
+            # ttk.Label(result_window, text=f"Solution: {greedy_solution}, Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}"
+            #           ).grid(row=1, column=1, padx=10, pady=10)
 
-            ttk.Label(result_window, text="Optimal Solution").grid(row=2, column=0, padx=10, pady=10)
+            ttk.Label(result_window, text="Optimal Solution").grid(row=1, column=0, padx=10, pady=10)
             ttk.Label(result_window, text=f"Solution: {optimal_selection}, Total Weight: {optimal_weight}/{capacity}, Total Value: {optimal_value}"
-                      ).grid(row=2, column=1, padx=10, pady=10)
+                      ).grid(row=1, column=1, padx=10, pady=10)
         else:
             ttk.Label(result_window, text="Predicted Solution").grid(row=0, column=0, padx=10, pady=10)
             ttk.Label(result_window, text=f"Total Weight: {total_weight}/{capacity}, Total Value: {model_value}, Approximation Ratio: {model_approx_ratio}"
                       ).grid(row=0, column=1, padx=10, pady=10)
 
-            ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
-            ttk.Label(result_window, text=f"Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}"
-                      ).grid(row=1, column=1, padx=10, pady=10)
+            # ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
+            # ttk.Label(result_window, text=f"Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}"
+            #           ).grid(row=1, column=1, padx=10, pady=10)
 
-            ttk.Label(result_window, text="Optimal Solution").grid(row=2, column=0, padx=10, pady=10)
+            ttk.Label(result_window, text="Optimal Solution").grid(row=1, column=0, padx=10, pady=10)
             ttk.Label(result_window, text=f"Total Weight: {optimal_weight}/{capacity}, Total Value: {optimal_value}"
-                      ).grid(row=2, column=1, padx=10, pady=10)
+                      ).grid(row=1, column=1, padx=10, pady=10)
 
 
         # Close Button
@@ -307,6 +337,7 @@ class DAOSNPS:
         import time
         runtimes = []
         infeasible_count = 0
+        optimal_instances = 0
         total_instances= 10
         total_approx_ratio_model = 0
         total_approx_ratio_greedy = 0
@@ -343,6 +374,10 @@ class DAOSNPS:
                         model_value = total_value
                         model_weight = total_weight
                         model_solution = solution
+
+            if model_value == 0:
+                total_instances += 1
+                continue # skip instance if best fitness is 0 (temp bug patch)
             
             # Update infeasibility rate
             if total_weight > capacity:
@@ -361,31 +396,41 @@ class DAOSNPS:
             greedy_approx = greedy_value / optimal_value
             total_approx_ratio_greedy += greedy_approx
 
+
+            model_solution = model_solution.tolist()
+
+            print(f"model solution: {model_solution}, cbc solution: {optimal_selection}")
+
+            if model_solution == optimal_selection:
+                optimal_instances += 1
+
         # Compute metrics
-        avg_model_approx = total_approx_ratio_model / total_instances
-        avg_greedy_approx = total_approx_ratio_greedy / total_instances
+        avg_model_approx = total_approx_ratio_model / 10 # total instances
+        avg_greedy_approx = total_approx_ratio_greedy / 10 # total instances
         avg_runtime = np.mean(runtimes)
+        optimal_instances_rate = optimal_instances / 10 # total instances
         infeasibility_rate = infeasible_count / total_instances
 
         # Use visualizer to show the average approximation ratios
         visualizer = KnapsackVisualizer(approx_plot=True)
-        visualizer.update_approx_plot([avg_model_approx, avg_greedy_approx])
+        visualizer.update_approx_plot([avg_model_approx])
 
         # Labels
         result_window = tk.Toplevel()
         result_window.title("Evaluation Results")
 
         ttk.Label(result_window, text=f"Number of instances: {total_instances}").grid(row=0, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Infeasibility Rate: {infeasibility_rate}").grid(row=1, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Model Approximation Ratio: {avg_model_approx}").grid(row=2, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Greedy Approximation Ratio: {avg_greedy_approx}").grid(row=3, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Average runtime: {avg_runtime}sec").grid(row=4, column=0, padx=10, pady=10)
+        # ttk.Label(result_window, text=f"Infeasibility Rate: {infeasibility_rate}").grid(row=1, column=0, padx=10, pady=10)
+        ttk.Label(result_window, text=f"Model Approximation Ratio: {avg_model_approx}").grid(row=1, column=0, padx=10, pady=10)
+        ttk.Label(result_window, text=f"Optimal Instances Rate: {optimal_instances_rate}").grid(row=2, column=0, padx=10, pady=10)
+        # ttk.Label(result_window, text=f"Greedy Approximation Ratio: {avg_greedy_approx}").grid(row=3, column=0, padx=10, pady=10)
+        ttk.Label(result_window, text=f"Average runtime: {avg_runtime}sec").grid(row=3, column=0, padx=10, pady=10)
         
         # Close Button
         ttk.Button(result_window, 
                     text="Close", 
                     command=lambda: (visualizer.close_knapsack_plot(), result_window.destroy())
-                    ).grid(row=6, column=0, padx=10, pady=10)
+                    ).grid(row=4, column=0, padx=10, pady=10)
         
         result_window.mainloop()
 

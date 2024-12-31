@@ -29,8 +29,8 @@ def greedy_decode(solution, weights, capacity):
 def test_model(model_path, data_type, num_items):
 
     # Load Evaluation data
-    eval_file_name = f"model_1_eval_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "eval_data"
+    eval_file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
+    folder_path = "presentation_data"
     file_path = os.path.join(folder_path, eval_file_name)
 
     if os.path.exists(file_path):
@@ -38,21 +38,20 @@ def test_model(model_path, data_type, num_items):
     else:
         raise FileNotFoundError(f"Evaluation data file '{file_path}' not found.")
 
-    # Load Solutions
-    sol_file_name = f"model_1_eval_solutions_{data_type.lower()}_{num_items}.pkl"
-    file_path = os.path.join(folder_path, sol_file_name)
+    # # Load Solutions
+    # sol_file_name = f"model_1_eval_solutions_{data_type.lower()}_{num_items}.pkl"
+    # file_path = os.path.join(folder_path, sol_file_name)
 
-    if os.path.exists(file_path):
-        cbc_solutions = load_data(file_path)
-    else:
-        raise FileNotFoundError(f"Solutions file '{file_path}' not found.")
+    # if os.path.exists(file_path):
+    #     cbc_solutions = load_data(file_path)
+    # else:
+    #     raise FileNotFoundError(f"Solutions file '{file_path}' not found.")
     
     # Randomly select an index
     random_idx = random.randint(0, len(eval_data) - 1)
     
     # Selected Instance and Solution through the random index
     selected_instance = eval_data[random_idx]
-    cbc_solution = cbc_solutions[0][random_idx]
 
     # Load the model and set evaluation mode
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -66,12 +65,13 @@ def test_model(model_path, data_type, num_items):
 
     with torch.no_grad():
 
-        items, capacity = selected_instance
+        items, capacity, solution, objective = selected_instance
         values = [item[0] for item in items]
         weights = [item[1] for item in items]
 
         # CBC Optimal Solution
-        cbc_value = cbc_solutions[1][random_idx]
+        cbc_value = objective
+        cbc_solution = solution
         cbc_weight = sum(cbc_solution[i] * weights[i] for i in range(len(weights)))
 
         # Model's prediction
@@ -83,16 +83,20 @@ def test_model(model_path, data_type, num_items):
         if isinstance(model, TransformerKnapsackModel):
             # Create combined input for TransformerKnapsackModel
             model_input_combined = torch.cat(
-                (model_input_capacity.unsqueeze(2),
-                    model_input_weights.unsqueeze(2),
-                    model_input_values.unsqueeze(2),
-                    torch.zeros(1, len(values), 3)  # placeholder for additional fields, adjust as necessary
+                (model_input_capacity.unsqueeze(2).to(device),
+                    model_input_weights.unsqueeze(2).to(device),
+                    model_input_values.unsqueeze(2).to(device),
+                    torch.zeros(1, len(values), 3).to(device)  # placeholder for additional fields, adjust as necessary
                 ), dim=2
-            )  # Shape: (1, num_items, 6)
+            ) # Shape: (1, num_items, 6)
             probs = model(model_input_combined).squeeze(0)
 
             # Interpret the output as Q-values, selecting the action with the highest Q-value
             predicted_solution = [q.argmax().item() for q in probs]
+
+            # Calculate predicted weight
+            total_weight = sum(predicted_solution[i] * weights[i] for i in range(len(weights)))
+
 
         else:
             # Use input format for other models
@@ -101,9 +105,8 @@ def test_model(model_path, data_type, num_items):
             # Interpret the output as probabilities, using the threshold
             predicted_solution = [1 if p >= 0.5 else 0 for p in probs]
        
-
-        # Calculate predicted weight
-        total_weight = sum(predicted_solution[i] * weights[i] for i in range(len(weights)))
+            # Calculate predicted weight
+            total_weight = sum(predicted_solution[i] * weights[i] for i in range(len(weights)))
 
         # Check if the model's prediction exceeds the capacity
         if total_weight > capacity:
@@ -127,7 +130,7 @@ def test_model(model_path, data_type, num_items):
 
         # Visualize results
         visualizer.plot_knapsack(values, weights, predicted_solution, capacity, cbc_solution)
-        visualizer.update_approx_plot([model_approx_ratio, greedy_approx_ratio])
+        visualizer.update_approx_plot([model_approx_ratio])
 
     # Display test results
     result_window = tk.Toplevel()
@@ -138,27 +141,27 @@ def test_model(model_path, data_type, num_items):
         ttk.Label(result_window, text="Predicted Solution").grid(row=0, column=0, padx=10, pady=10)
         ttk.Label(result_window, text=f"Solution: {predicted_solution}, Total Weight: {total_weight}/{capacity}, Total Value: {predicted_value}, Approximation Ratio: {model_approx_ratio}").grid(row=0, column=1, padx=10, pady=10)
 
-        ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Solution: {greedy_solution}, Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}").grid(row=1, column=1, padx=10, pady=10)
+        # ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
+        # ttk.Label(result_window, text=f"Solution: {greedy_solution}, Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}").grid(row=1, column=1, padx=10, pady=10)
 
-        ttk.Label(result_window, text="CBC Solution").grid(row=2, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Solution: {cbc_solution}, Total Weight: {cbc_weight}/{capacity}, Total Value: {cbc_value}").grid(row=2, column=1, padx=10, pady=10)
+        ttk.Label(result_window, text="CBC Solution").grid(row=1, column=0, padx=10, pady=10)
+        ttk.Label(result_window, text=f"Solution: {cbc_solution}, Total Weight: {cbc_weight}/{capacity}, Total Value: {cbc_value}").grid(row=1, column=1, padx=10, pady=10)
     else:
         ttk.Label(result_window, text="Predicted Solution").grid(row=0, column=0, padx=10, pady=10)
         ttk.Label(result_window, text=f"Total Weight: {total_weight}/{capacity}, Total Value: {predicted_value}, Approximation Ratio: {model_approx_ratio}").grid(row=0, column=1, padx=10, pady=10)
 
-        ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}").grid(row=1, column=1, padx=10, pady=10)
+        # ttk.Label(result_window, text="Greedy Solution").grid(row=1, column=0, padx=10, pady=10)
+        # ttk.Label(result_window, text=f"Total Weight: {greedy_weight}/{capacity}, Total Value: {greedy_value}, Approximation Ratio: {greedy_approx_ratio}").grid(row=1, column=1, padx=10, pady=10)
 
-        ttk.Label(result_window, text="CBC Solution").grid(row=2, column=0, padx=10, pady=10)
-        ttk.Label(result_window, text=f"Total Weight: {cbc_weight}/{capacity}, Total Value: {cbc_value}").grid(row=2, column=1, padx=10, pady=10)
+        ttk.Label(result_window, text="CBC Solution").grid(row=1, column=0, padx=10, pady=10)
+        ttk.Label(result_window, text=f"Total Weight: {cbc_weight}/{capacity}, Total Value: {cbc_value}").grid(row=1, column=1, padx=10, pady=10)
 
 
     # Close Button
     ttk.Button(result_window, 
                text="Close", 
                command=lambda: (visualizer.close_knapsack_plot(), result_window.destroy())
-               ).grid(row=3, column=1, padx=10, pady=10)
+               ).grid(row=3, column=2, padx=10, pady=10)
 
     result_window.mainloop()
 
