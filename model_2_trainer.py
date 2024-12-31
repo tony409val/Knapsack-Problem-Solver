@@ -55,7 +55,7 @@ def train_transformer_model(data_type, num_items, visual=False):
 
     # Visualization setup
     if visual:
-        visualizer = KnapsackVisualizer(knapsack_plot=False, reward_plot=True)
+        visualizer = KnapsackVisualizer(knapsack_plot=True, reward_plot=True)
     else:
         visualizer = None
 

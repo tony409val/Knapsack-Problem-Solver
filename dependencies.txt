@@ -3,3 +3,5 @@ py -m pip install torch torchvision torchaudio --index-url https://download.pyto
 py -m pip install numpy
 
 py -m pip install -U matplotlib
+
+py -m pip install pulp
