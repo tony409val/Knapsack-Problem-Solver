@@ -30,7 +30,7 @@ def test_model(model_path, data_type, num_items):
 
     # Load Evaluation data
     eval_file_name = f"training_data_{data_type.lower()}_{num_items}.pkl"
-    folder_path = "presentation_data"
+    folder_path = "test_data"
     file_path = os.path.join(folder_path, eval_file_name)
 
     if os.path.exists(file_path):
